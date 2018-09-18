@@ -327,9 +327,27 @@ def initialize_df(info, categories, paths, params):
     df.loc[mask, 'Attention Probe'] = random.sample(['o']*(len(df.loc[mask].index)/2) + ['x']*(len(df.loc[mask].index)/2), len(df.loc[mask].index))
 
     # Select composite images
-    composites = random.sample(os.listdir(paths['stim_path']+'composite/'), total_pres*(params['mem_to_pres']-1))
-    presentation = composites[0:int(len(composites)*2/3)]
-    memory = composites[int(len(composites)*2/3):]
+    #composites = random.sample(os.listdir(paths['stim_path']+'composite/'), total_pres*(params['mem_to_pres']-1))
+    composites = random.sample(os.listdir(paths['stim_path']+'composite/'), len(os.listdir(paths['stim_path']+'composite/')))
+    presentation = composites[0:total_pres*2]
+    memory = composites[total_pres*2:total_pres*3]
+    localizer = composites[total_pres*3:]
+
+    # LOCALIZER DF
+    localizer_face = img_split(localizer, cat=True)['face_im']
+    localizer_place = img_split(localizer, cat=True)['place_im']
+
+    localizer_columns = ['Run', 'Trial', 'Face', 'Place', 'Image']
+
+    df = pd.DataFrame(index = range(len(localizer)*2), columns=columns)
+    localizer_df['Run']=0
+    localizer_df['Trial']=0
+    localizer_df['Image']=localizer_face+localizer_place
+    localizer_df['Face']= [1]*len(localizer)+[0]*len(localizer)
+    localizer_df['Place']= [0]*len(localizer)+[1]*len(localizer)
+    localizer_df.to_csv(paths['subject']+'localizer_df.csv')
+
+    # EXPERIMENT DF
 
     # add presentation images
     pres_dict = presentation_images(presentation)
@@ -545,8 +563,8 @@ def rating_pull(rating_tuple):
         rt = rating_tuple[0][1]
     return(rating, rt)
 
-# Functions to Execute Presentation & Memory Runs
 
+# Functions to Execute Presentation & Memory Runs
 def presentation_run(win, run, pres_df, params, timing, paths):
     """
     Displays a full presentation run, saves out data to csv
