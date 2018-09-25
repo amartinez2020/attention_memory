@@ -11,7 +11,7 @@ import csv
 # Set Up #############################################################################################
 
 # Parameters #
-experiment_title = 'Attention and Memory' 
+experiment_title = 'Attention and Memory'
 practice = False  # instructions & practice
 
 params = {'runs':8, 'presentations_per_run':10, 'invalid_cue_percentage':10, 'mem_to_pres':4, 'mem_pres_split':2}
@@ -25,7 +25,7 @@ paths['subject'] = subject_directory(info, paths['data_path'])
 # Initiate clock #
 global_clock = core.Clock()
 logging.setDefaultClock(global_clock)
- 
+
 # Pre questionnaire #
 if int(info['run'])==0:
     pre_info = pre_questionnaire(info, save_path=paths['subject'])
@@ -47,35 +47,38 @@ if practice:
 
 # Initialize dataframe #
 if int(info['run'])==0:
-    df = initialize_df(info, categories, paths, params) 
+    df = initialize_df(info, categories, paths, params)
 else:
     df = pd.DataFrame.from_csv(paths['subject']+'intial_df.csv')
 
 # Create df masks #
-mask1 = df['Trial Type']=='Presentation'
-mask2 = df['Trial Type']=='Memory'
+mask1 = df[0]['Trial Type']=='Presentation'
+mask2 = df[0]['Trial Type']=='Memory'
+
 
 # Pres & Mem runs #
 for run in range(int(info['run']),params['runs']):
 
     # chunk dataframe #
-    mask3 = df['Run']==run
+    mask3 = df[0]['Run']==run
     
     # presentation run #
     text_present(win, pres_text(run))
-    presentation_run(win, run, df.loc[mask1][mask3], params, timing, paths)
-    
-    # memory run #
+    presentation_run(win, run, df[0].loc[mask1][mask3], params, timing, paths)
+#
+#    # memory run #
     text_present(win, mem_text(run))
-    memory_run(win, run, df.loc[mask2][mask3], params, timing, paths)
-    
-    # if subject self reports head movement, experiment stops for recalibration) #
-    text_present(win, 'Have you removed your head from the chin rest, since we last set up the eye tracker? ( "y" / "n" )', 
+    memory_run(win, run, df[0].loc[mask2][mask3], params, timing, paths)
+#
+#    # if subject self reports head movement, experiment stops for recalibration) #
+    text_present(win, 'Have you removed your head from the chin rest, since we last set up the eye tracker? ( "y" / "n" )',
                  cali=True, timing = timing)
-
-    # after last memory run #
-    if run == params['runs']-1:
+   
+    if run== params['runs'] -1:
+        #after last memory run #
+        text_present(win, localizer_text(run))
+        localizer_run(win, run, df[1], params, timing, paths)
         
-        # closing message and post-questionnaire #
-        text_present(win, 'Thank you for your participation!', timing=timing, close=True)
-        post_info = post_questionnaire(info, save_path=paths['subject'])
+# closing message and post-questionnaire #
+text_present(win, 'Thank you for your participation!', timing=timing, close=True)
+post_info = post_questionnaire(info, save_path=paths['subject'])
