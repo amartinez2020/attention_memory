@@ -339,7 +339,7 @@ def initialize_df(info, categories, paths, params):
 
     localizer_columns = ['Run', 'Trial', 'Face', 'Place', 'Image']
 
-    df = pd.DataFrame(index = range(len(localizer)*2), columns=columns)
+    localizer_df = pd.DataFrame(index = range(len(localizer)*2), columns=columns)
     localizer_df['Run']=0
     localizer_df['Trial']=0
     localizer_df['Image']=localizer_face+localizer_place
@@ -363,7 +363,7 @@ def initialize_df(info, categories, paths, params):
 
     # save dataframe
     df.to_csv(paths['subject']+'intial_df.csv')
-    return(df)
+    return([df, localizer_df])
 
 def cue_stim(win, side, category, stim_dir):
     '''
@@ -563,6 +563,19 @@ def rating_pull(rating_tuple):
         rt = rating_tuple[0][1]
     return(rating, rt)
 
+def localizer_run(win, run, localizer_df, params, timing, paths):
+#
+#         
+
+    fixation = fix_stim(win)
+    for trial in localizer_df.index.values:
+        fixation.setAutoDraw(True)
+        display(win, [fixation], timing['pause'], path = paths)
+        image = memory_stim(win, localizer_df['Image'][trial], paths['stim_path'])
+        display(win, [image], timing['mem'], accepted_keys=None, trial=trial, df=localizer_df, path = paths)
+        fixation.setAutoDraw(False)
+
+
 
 # Functions to Execute Presentation & Memory Runs
 def presentation_run(win, run, pres_df, params, timing, paths):
@@ -728,6 +741,25 @@ def mem_text(trial):
                     '\n\n Press any key to begin.'
 
     instructions = [mem1, mem2]
+
+    if trial >= 1:
+        num = 1
+    else:
+        num = 0
+
+    return(instructions[num])
+def localizer_text(trial):
+    """
+    input:  current localizer trial # (int)
+    output: localizer instruction text (string) for given localizer trial
+    """
+
+    local1 = ' Welcome to the localizer phase of the experiment.'
+
+    local2 = ' LOCALIZER BLOCK. ' \
+                    '\n\n Press any key to begin.'
+
+    instructions = [local1, local2]
 
     if trial >= 1:
         num = 1
